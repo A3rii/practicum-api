@@ -1,0 +1,76 @@
+[
+  {
+    "id": 2,
+    "first_name": "Ronaldo",
+    "last_name": "Cristino",
+    "email": "alice.smith@example.com",
+    "password": "securepass",
+    "phone_number": "9876543210",
+    "social_account": "@alicesmith"
+  },
+  {
+    "id": 3,
+    "first_name": "Michael",
+    "last_name": "Johnson",
+    "email": "michael.johnson@example.com",
+    "password": "pass123",
+    "phone_number": "5551234567",
+    "social_account": "@michaeljohnson"
+  },
+  {
+    "id": 4,
+    "first_name": "Emily",
+    "last_name": "Brown",
+    "email": "emily.brown@example.com",
+    "password": "brownie123",
+    "phone_number": "1112223333",
+    "social_account": "@emilybrown"
+  },
+  {
+    "id": 5,
+    "first_name": "David",
+    "last_name": "Martinez",
+    "email": "david.martinez@example.com",
+    "password": "davidpass",
+    "phone_number": "7778889999",
+    "social_account": "@davidmartinez"
+  },
+  {
+    "id": 6,
+    "first_name": "kimly",
+    "last _name": "nam",
+    "email": "kimly.johnson@example.com",
+    "password": "pass1234",
+    "phone_number": "55512345676",
+    "social_account": "@kimlyjohnson"
+  },
+  [
+    {
+      "id": 1,
+      "first_name": "John",
+      "last_name": "Doe",
+      "email": "john.doe@example.com",
+      "password": "password123",
+      "phone_number": "1234567890",
+      "social_account": "@johndoe"
+    }
+  ],
+  {
+    "id": null,
+    "first_name": "messi",
+    "last_name": "leoniel",
+    "email": "messi.johnson@example.com",
+    "password": "pass12345",
+    "phone_number": "555123456123",
+    "social_account": "@messijohnson"
+  },
+  {
+    "id": 1,
+    "first_name": "bunski",
+    "last_name": "leoniel",
+    "email": "messi.johnson@example.com",
+    "password": "pass12345",
+    "phone_number": "555123456123",
+    "social_account": "@messijohnson"
+  }
+]
