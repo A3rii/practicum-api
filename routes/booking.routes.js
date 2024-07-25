@@ -5,6 +5,7 @@ import {
   createBooking,
   updateBookingStatus,
   queryBookings,
+  bookingsPagination,
 } from '../controllers/booking.controller.js';
 import verifyToken from './../middleware/auth.middleware.js';
 
@@ -19,4 +20,7 @@ router.route('/:bookingId/status').put(verifyToken, updateBookingStatus);
 
 //* Querying booking
 router.route('/status/filter').get(verifyToken, queryBookings);
+
+router.route('/customer/pagination').get(verifyToken, bookingsPagination);
+
 export default router;

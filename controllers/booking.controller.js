@@ -2,6 +2,7 @@ import Booking from '../models/booking.js';
 import Lessor from '../models/lessor.js';
 import moment from 'moment';
 
+//* Get all the bookings from the users
 const getBookingForLessor = async (req, res) => {
   try {
     const userEmail = req.userData.email;
@@ -10,9 +11,13 @@ const getBookingForLessor = async (req, res) => {
     if (!lessor) {
       return res.status(404).json({ message: 'Lessor not found' });
     }
+
+    // Get all the bookings information that is match
     const bookings = await Booking.find({ lessor: lessor._id })
+      .sort({ date: -1 })
       .populate('lessor', 'first_name last_name')
       .populate('user', 'name email phone_number');
+
     if (!bookings || bookings.length === 0) {
       return res
         .status(404)
@@ -25,6 +30,65 @@ const getBookingForLessor = async (req, res) => {
   }
 };
 
+const bookingsPagination = async (req, res) => {
+  try {
+    const userEmail = req.userData.email;
+    const lessor = await Lessor.findOne({ email: userEmail });
+
+    if (!lessor) {
+      return res.status(404).json({ message: 'Lessor not found' });
+    }
+
+    // Extract page and limit from query parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Calculate the number of documents to skip
+    const skip = (page - 1) * limit;
+
+    // Get the current date and set the time to the start of the day
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0); // In new date it captures the date and time so set default time to 0 which we can compare
+
+    // Find bookings for the lessor with dates in the future or present
+    const bookings = await Booking.find({
+      lessor: lessor._id,
+      date: { $gte: currentDate },
+    })
+      .populate('lessor', 'first_name last_name') // Ref by lessor
+      .populate('user', 'name email phone_number') // Ref by user
+      .sort({ date: -1 })
+      .skip(skip)
+      .limit(limit);
+
+    console.log(bookings);
+
+    // If the bookings are not found return 404
+    if (!bookings || bookings.length === 0) {
+      return res
+        .status(404)
+        .json({ message: 'Bookings not found for this lessor' });
+    }
+
+    // Get total count of bookings for pagination
+    const totalBookings = await Booking.countDocuments({
+      lessor: lessor._id,
+      date: { $gte: currentDate },
+    });
+
+    res.status(200).json({
+      message: 'Success',
+      currentPage: page,
+      totalPages: Math.ceil(totalBookings / limit),
+      totalBookings: totalBookings,
+      bookings: bookings,
+    });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+//* Bookings sport center
 const createBooking = async (req, res) => {
   const {
     user,
@@ -40,6 +104,7 @@ const createBooking = async (req, res) => {
   if (!user || !lessor || !facility || !court || !startTime || !endTime) {
     return res.status(400).json({ message: 'Missing required fields' });
   }
+
   // Validate time format using moment
   if (
     !moment(startTime, 'hh:mm a', true).isValid() ||
@@ -78,6 +143,7 @@ const createBooking = async (req, res) => {
   }
 };
 
+//* Changing Status [pending , approved , rejected]
 const updateBookingStatus = async (req, res) => {
   try {
     const { bookingId } = req.params;
@@ -102,6 +168,7 @@ const updateBookingStatus = async (req, res) => {
   }
 };
 
+//* Filter Status from bookings
 const queryBookings = async (req, res) => {
   try {
     const userEmail = req.userData.email;
@@ -132,9 +199,11 @@ const queryBookings = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
 export {
   getBookingForLessor,
   createBooking,
   updateBookingStatus,
   queryBookings,
+  bookingsPagination,
 };

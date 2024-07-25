@@ -257,4 +257,58 @@ const deleteCourt = asyncHandler(async (req, res) => {
   }
 });
 
-export { showCourt, createCourt, editCourt, showCourtById, deleteCourt };
+// Show Court By each facility
+const showCourtsByFacility = asyncHandler(async (req, res) => {
+  try {
+    const userEmail = req.userData.email;
+    const facilityId = req.params.facilityId; // Get facility ID from URL params
+    const lessor = await Lessor.findOne({ email: userEmail });
+
+    if (!lessor) {
+      return res.status(404).json({
+        message: 'Lessor not found',
+      });
+    }
+
+    // Assuming the facilities are embedded in the lessor document
+    const facility = lessor.facilities.find(
+      (fac) => fac._id.toString() === facilityId,
+    );
+
+    if (!facility) {
+      return res.status(404).json({ message: 'Facility not found' });
+    }
+
+    const courts = facility.court;
+
+    if (!courts || courts.length === 0) {
+      return res.status(404).json({ message: 'No courts found', courts: [] });
+    }
+
+    res.status(200).json({
+      message: 'Success',
+      admin: {
+        name: `${lessor.first_name} ${lessor.last_name}`,
+        email: lessor.email,
+      },
+      facility: {
+        id: facility._id,
+        name: facility.name,
+        courts,
+      },
+    });
+  } catch (err) {
+    res.status(500).json({
+      message: err.message,
+    });
+  }
+});
+
+export {
+  showCourt,
+  createCourt,
+  editCourt,
+  showCourtById,
+  deleteCourt,
+  showCourtsByFacility,
+};

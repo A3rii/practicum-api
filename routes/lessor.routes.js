@@ -24,6 +24,7 @@ import {
   editCourt,
   showCourtById,
   deleteCourt,
+  showCourtsByFacility,
 } from './../controllers/court.controller.js';
 import verifyToken from './../middleware/auth.middleware.js';
 
@@ -34,13 +35,13 @@ router.get('/auth/users', getAllLessors);
 
 router.get('/auth/users/:id', getLessorsById);
 
-router.route('/facility').post(createFacilities);
-
 router.use(verifyToken);
+
+//* Lessor Profile
 router.get('/auth/profile', lessorProfile);
+router.route('/update').put(editLessor);
 
 //* Facility
-
 router.route('/facility').get(showFacilities).post(createFacilities);
 router
   .route('/facility/:id')
@@ -58,6 +59,6 @@ router
   .put(editCourt)
   .delete(deleteCourt);
 
-router.route('/update').put(editLessor);
+router.route('/facility/:facilityId/courts').get(showCourtsByFacility);
 
 export default router;

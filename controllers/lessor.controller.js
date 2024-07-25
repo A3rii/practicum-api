@@ -175,6 +175,7 @@ const getLessorsById = asyncHandler(async (req, res) => {
   }
 });
 
+// Edit lessor information
 const editLessor = asyncHandler(async (req, res) => {
   try {
     const userEmail = req.userData.email;
