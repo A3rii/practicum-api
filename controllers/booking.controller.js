@@ -12,7 +12,7 @@ const getBookingForLessor = async (req, res) => {
       return res.status(404).json({ message: 'Lessor not found' });
     }
 
-    // Get all the bookings information that is match
+    // Get all the bookings information that matches
     const bookings = await Booking.find({ lessor: lessor._id })
       .sort({ date: -1 })
       .populate('lessor', 'first_name last_name')
@@ -24,7 +24,21 @@ const getBookingForLessor = async (req, res) => {
         .json({ message: 'Bookings not found for this lessor' });
     }
 
-    res.status(200).json({ message: 'Success', bookings: bookings });
+    const currentDate = new Date();
+    currentDate.setHours(0, 0, 0, 0);
+    let updatedBookings = [];
+
+    // if
+    for (let booking of bookings) {
+      if (booking.date < currentDate && booking.status === 'pending') {
+        // Update booking status to 'rejected' if the date is expired
+        booking.status = 'rejected';
+        await booking.save();
+      }
+      updatedBookings.push(booking);
+    }
+
+    res.status(200).json({ message: 'Success', bookings: updatedBookings });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

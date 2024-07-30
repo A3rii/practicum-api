@@ -73,7 +73,7 @@ const login = asyncHandler(async (req, res) => {
       },
       process.env.JWT_SECRET,
       {
-        expiresIn: '2h',
+        expiresIn: '4h',
       },
     );
 

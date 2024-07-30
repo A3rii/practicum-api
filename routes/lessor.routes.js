@@ -1,6 +1,4 @@
 import express from 'express';
-const router = express.Router();
-
 import {
   registerLessor,
   loginLessor,
@@ -27,6 +25,8 @@ import {
   showCourtsByFacility,
 } from './../controllers/court.controller.js';
 import verifyToken from './../middleware/auth.middleware.js';
+
+const router = express.Router();
 
 //*  Authentication
 router.post('/auth/register', registerLessor);

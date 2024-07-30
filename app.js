@@ -8,6 +8,7 @@ import expressListEndpoints from 'express-list-endpoints';
 import auth from './routes/auth.routes.js';
 import lessor from './routes/lessor.routes.js';
 import book from './routes/booking.routes.js';
+import userBook from './routes/user_booking.routes.js';
 import cors from 'cors';
 import 'dotenv/config';
 
@@ -33,6 +34,7 @@ connectDB().then(() => {
   app.use('/api/auth', auth);
   app.use('/api/lessor', lessor);
   app.use('/api/books', book);
+  app.use('/api/user', userBook);
 
   //*  List all endpoints
   app.get('/api/endpoints', (req, res) => {
