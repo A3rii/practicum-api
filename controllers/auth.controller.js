@@ -69,7 +69,8 @@ const login = asyncHandler(async (req, res) => {
     // Generate JWT token
     const jwtToken = jwt.sign(
       {
-        email: user.email,
+        email: user.email, // Checking email
+        role: user.role, // Checking role to making a admin or user route
       },
       process.env.JWT_SECRET,
       {
@@ -84,7 +85,7 @@ const login = asyncHandler(async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({
-      message: error.message,
+      message: 'Login failed, please try again !',
       success: false,
     });
   }

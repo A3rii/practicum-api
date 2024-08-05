@@ -62,7 +62,7 @@ const registerLessor = asyncHandler(async (req, res) => {
 
     // Generate JWT token
     const jwtToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-      expiresIn: '2h',
+      expiresIn: '4h',
     });
 
     return res.status(201).json({
@@ -95,6 +95,7 @@ const loginLessor = asyncHandler(async (req, res) => {
     const jwtToken = jwt.sign(
       {
         email: lessor.email,
+        role: lessor.role,
       },
       process.env.JWT_SECRET,
       {
@@ -121,6 +122,7 @@ const lessorProfile = asyncHandler(async (req, res) => {
     const lessor = await Lessor.findOne({ email: lessorEmail }).select(
       '-password',
     ); // Get password out
+
     if (!lessor) {
       return res.status(404).json({
         success: false,

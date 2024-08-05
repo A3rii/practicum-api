@@ -9,6 +9,7 @@ import auth from './routes/auth.routes.js';
 import lessor from './routes/lessor.routes.js';
 import book from './routes/booking.routes.js';
 import userBook from './routes/user_booking.routes.js';
+import staticBooking from './routes/booking_calculation.routes.js';
 import cors from 'cors';
 import 'dotenv/config';
 
@@ -35,6 +36,7 @@ connectDB().then(() => {
   app.use('/api/lessor', lessor);
   app.use('/api/books', book);
   app.use('/api/user', userBook);
+  app.use('/api/period', staticBooking);
 
   //*  List all endpoints
   app.get('/api/endpoints', (req, res) => {

@@ -25,34 +25,38 @@ import {
   showCourtsByFacility,
 } from './../controllers/court.controller.js';
 import verifyToken from './../middleware/auth.middleware.js';
+import checkingAdminRole from './../middleware/checkRole.middleware.js';
 
 const router = express.Router();
 
 //*  Authentication
 router.post('/auth/register', registerLessor);
 router.post('/auth/login', loginLessor);
-router.get('/auth/users', getAllLessors);
+router.get('/auth/informations', getAllLessors); // for user's view
 
-router.get('/auth/users/:id', getLessorsById);
+router.get('/auth/informations/:id', getLessorsById);
 
 router.use(verifyToken);
 
 //* Lessor Profile
-router.get('/auth/profile', lessorProfile);
-router.route('/update').put(editLessor);
+router.get('/auth/profile', checkingAdminRole, lessorProfile);
+router.route('/update').put(checkingAdminRole, editLessor);
 
 //* Facility
-router.route('/facility').get(showFacilities).post(createFacilities);
+router
+  .route('/facility')
+  .get(checkingAdminRole, showFacilities)
+  .post(checkingAdminRole, createFacilities);
 router
   .route('/facility/:id')
-  .get(showFacilitiesById)
-  .put(editFacility)
-  .delete(deleteFacility);
+  .get(checkingAdminRole, showFacilitiesById)
+  .put(checkingAdminRole, editFacility)
+  .delete(checkingAdminRole, deleteFacility);
 
 //* Court
 
-router.route('/court').get(showCourt);
-router.route('/court/:id').post(createCourt);
+router.route('/court').get(checkingAdminRole, showCourt);
+router.route('/court/:id').post(checkingAdminRole, createCourt);
 router
   .route('/facility/:facilityId/court/:courtId')
   .get(showCourtById)

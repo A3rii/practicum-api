@@ -1,7 +1,8 @@
 import Booking from '../models/booking.js';
 import Lessor from '../models/lessor.js';
 import moment from 'moment';
-
+import dayjs from 'dayjs';
+import { isSameDay, startOfDay } from 'date-fns';
 //* Get all the bookings from the users
 const getBookingForLessor = async (req, res) => {
   try {
@@ -28,7 +29,6 @@ const getBookingForLessor = async (req, res) => {
     currentDate.setHours(0, 0, 0, 0);
     let updatedBookings = [];
 
-    // if
     for (let booking of bookings) {
       if (booking.date < currentDate && booking.status === 'pending') {
         // Update booking status to 'rejected' if the date is expired
@@ -80,8 +80,8 @@ const bookingsPagination = async (req, res) => {
     // If the bookings are not found return 404
     if (!bookings || bookings.length === 0) {
       return res
-        .status(404)
-        .json({ message: 'Bookings not found for this lessor' });
+        .status(200)
+        .json({ message: 'There are no bookings', bookings });
     }
 
     // Get total count of bookings for pagination
@@ -214,10 +214,97 @@ const queryBookings = async (req, res) => {
   }
 };
 
+const bookingAvailable = async (req, res) => {
+  const { date, facility, court } = req.query;
+  const { lessorID } = req.params;
+
+  try {
+    // Validate date query parameter
+    if (!date) {
+      return res
+        .status(400)
+        .json({ message: 'Date query parameter is required' });
+    }
+
+    const lessor = await Lessor.findOne({ _id: lessorID });
+
+    // Check if lessor exists
+    if (!lessor) {
+      return res.status(404).json({ message: 'Lessor not found' });
+    }
+
+    const parsedDate = startOfDay(new Date(date));
+
+    const query = {
+      lessor: lessor._id,
+      facility: facility,
+    };
+
+    // Include court in the query only if it's provided
+    if (court) {
+      query.court = court;
+    }
+    // Fetch bookings for the lessor and specified facility
+    const bookings = await Booking.find(query)
+      .populate('lessor', 'first_name last_name') // Populate lessor details
+      .populate('user', 'name email phone_number'); // Populate user details
+
+    // Filter bookings by date
+    const filteredBookings = bookings.filter((booking) => {
+      const bookingDate = startOfDay(new Date(booking.date));
+      return isSameDay(bookingDate, parsedDate);
+    });
+
+    /** Covert date for sorting
+     *
+     * @param {*} date
+     * @param {*} time
+     * @returns  ISODate  (2024-07-19T17:00:00.000Z )
+     */
+    const convertTime = (date, time) => {
+      return dayjs(
+        `${dayjs(date).format('YYYY-MM-DD')} ${time}`,
+        'YYYY-MM-DD hh:mm A',
+      ).format('HH:mm a');
+    };
+
+    // Extract required fields and convert times
+    const requiredBookings = filteredBookings.map((booking) => ({
+      facility: booking.facility,
+      court: booking.court,
+      start: convertTime(parsedDate, booking.startTime),
+      end: convertTime(parsedDate, booking.endTime),
+    }));
+
+    // Sort bookings by start time
+    const sortedBookings = requiredBookings.sort((a, b) => {
+      const timeA = a.start.split(':').map(Number);
+      const timeB = b.start.split(':').map(Number);
+
+      return timeA[0] - timeB[0] || timeA[1] - timeB[1];
+    });
+
+    // Respond with the sorted bookings
+    res.status(200).json({
+      message:
+        requiredBookings.length > 0 ? 'Bookings found' : 'No bookings found',
+      date: dayjs(parsedDate).format('YYYY-MM-DD'),
+      bookings: sortedBookings,
+    });
+  } catch (err) {
+    console.error('Error fetching bookings:', err);
+    res.status(500).json({
+      message: 'Internal Server Error',
+      error: err.message,
+    });
+  }
+};
+
 export {
   getBookingForLessor,
   createBooking,
   updateBookingStatus,
   queryBookings,
   bookingsPagination,
+  bookingAvailable,
 };

@@ -89,7 +89,7 @@ const createFacilities = async (req, res) => {
       success: true,
       message: 'Facility created successfully',
       facility: newFacility,
-    });
+    }); 
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
