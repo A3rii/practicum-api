@@ -1,4 +1,4 @@
-'use strict';
+  'use strict';
 
 import express from 'express';
 import morgan from 'morgan';
@@ -6,10 +6,12 @@ import connectDB from './configs/db.js';
 import bodyParser from 'body-parser';
 import expressListEndpoints from 'express-list-endpoints';
 import auth from './routes/auth.routes.js';
+import superAdmin from './routes/super_admin.routes.js';
 import lessor from './routes/lessor.routes.js';
 import book from './routes/booking.routes.js';
 import userBook from './routes/user_booking.routes.js';
 import staticBooking from './routes/booking_calculation.routes.js';
+import comments from './routes/comments.routes.js';
 import cors from 'cors';
 import 'dotenv/config';
 
@@ -18,7 +20,14 @@ const app = express();
 // Middleware to parse JSON
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(cors());
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  }),
+);
+
+console.log(process.env.FRONTEND_URL);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
@@ -37,6 +46,8 @@ connectDB().then(() => {
   app.use('/api/books', book);
   app.use('/api/user', userBook);
   app.use('/api/period', staticBooking);
+  app.use('/api/auth/moderator', superAdmin);
+  app.use('/api/user/posts', comments);
 
   //*  List all endpoints
   app.get('/api/endpoints', (req, res) => {

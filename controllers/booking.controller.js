@@ -3,6 +3,7 @@ import Lessor from '../models/lessor.js';
 import moment from 'moment';
 import dayjs from 'dayjs';
 import { isSameDay, startOfDay } from 'date-fns';
+
 //* Get all the bookings from the users
 const getBookingForLessor = async (req, res) => {
   try {

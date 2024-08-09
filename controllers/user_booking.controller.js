@@ -2,7 +2,6 @@ import Booking from './../models/booking.js';
 import User from './../models/user.js';
 
 //* Get all bookings for users
-
 const getBookingForUser = async (req, res) => {
   try {
     const userEmail = req.userData.email;
@@ -12,10 +11,9 @@ const getBookingForUser = async (req, res) => {
       return res.status(404).json({ message: 'user not found' });
     }
 
-    const userBooking = await Booking.find({ user: user._id }).populate(
-      'lessor',
-      'sportcenter_name first_name last_name logo',
-    );
+    const userBooking = await Booking.find({ user: user._id })
+      .sort({ date: -1 })
+      .populate('lessor', 'sportcenter_name first_name last_name logo');
 
     if (!userBooking || userBooking === 0) {
       return res
