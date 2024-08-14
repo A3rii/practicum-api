@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
 import facilitySchema from './facility.js';
-const timeFormat = /^([1-9]|1[0-2])(am|pm)$/i;
-
 const lessorSchema = new mongoose.Schema({
   first_name: {
     type: String,
@@ -27,7 +25,7 @@ const lessorSchema = new mongoose.Schema({
     },
     state: {
       type: String,
-      required: [true, 'State must be provided'], // Fixed 'require' to 'required'
+      required: [true, 'State must be provided'],
     },
   },
   password: {
@@ -51,22 +49,10 @@ const lessorSchema = new mongoose.Schema({
     open: {
       type: String,
       required: [true, 'Opening time must be provided'],
-      validate: {
-        validator: function (v) {
-          return timeFormat.test(v);
-        },
-        message: (props) => `${props.value} is not a valid opening time!`,
-      },
     },
     close: {
       type: String,
       required: [true, 'Closing time must be provided'],
-      validate: {
-        validator: function (v) {
-          return timeFormat.test(v);
-        },
-        message: (props) => `${props.value} is not a valid closing time!`,
-      },
     },
   },
   phone_number: {
@@ -81,6 +67,12 @@ const lessorSchema = new mongoose.Schema({
   logo: {
     type: String,
     default: '',
+  },
+  status: {
+    type: String,
+    enum: ['pending', 'approved', 'rejected'],
+    default: 'pending',
+    required: true,
   },
   created_at: {
     type: Date,

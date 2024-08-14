@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import SuperAdmin from './../models/superadmin.js';
+import Lessor from '../models/lessor.js';
 import asyncHandler from 'express-async-handler';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -110,7 +111,7 @@ const superAdminProfile = asyncHandler(async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Login Successfully',
-      moderator,
+      moderator ,
     });
   } catch (error) {
     return res.status(500).json({

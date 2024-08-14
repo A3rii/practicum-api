@@ -22,7 +22,7 @@ const getBookingForLessor = async (req, res) => {
 
     if (!bookings || bookings.length === 0) {
       return res
-        .status(404)
+        .status(200)
         .json({ message: 'Bookings not found for this lessor' });
     }
 
@@ -170,7 +170,7 @@ const updateBookingStatus = async (req, res) => {
 
     const booking = await Booking.findById(bookingId);
     if (!booking) {
-      return res.status(404).json({ message: 'Booking not found' });
+      return res.status(200).json({ message: 'There is not booking' });
     }
 
     booking.status = status;

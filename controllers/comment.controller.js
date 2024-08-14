@@ -4,7 +4,7 @@ import User from './../models/user.js';
 
 const getComments = async (req, res) => {
   try {
-    const { sportCenterId } = req.query; // Get the sport center ID from query parameters
+    const { sportCenterId, status } = req.query; // Get the sport center ID and status from query parameters
     const moderatorEmail = req.userData.email; // Get the moderator email from the authenticated user
 
     // Find the moderator in the database
@@ -16,18 +16,21 @@ const getComments = async (req, res) => {
       });
     }
 
+    // Initialize the query object
+    let query = {};
+
     // If a sportCenterId is provided, fetch comments specific to that sport center
-    let comments;
     if (sportCenterId) {
-      comments = await Comment.find({ postTo: sportCenterId })
-        .populate('postBy', 'name email phone_number')
-        .populate('postTo', 'sportcenter_name logo');
-    } else {
-      // If no sportCenterId is provided, fetch all comments
-      comments = await Comment.find({})
-        .populate('postBy', 'name email phone_number')
-        .populate('postTo', 'sportcenter_name logo');
+      query.postTo = sportCenterId;
     }
+
+    // Only fetch pending comments if sportCenterId is not provided
+    query.status = status || 'pending';
+
+    // Fetch the comments based on the constructed query
+    const comments = await Comment.find(query)
+      .populate('postBy', 'name email phone_number')
+      .populate('postTo', 'sportcenter_name logo');
 
     if (!comments || comments.length === 0) {
       return res.status(200).json({
@@ -42,11 +45,12 @@ const getComments = async (req, res) => {
     });
   } catch (err) {
     console.error('Error fetching comments:', err);
-    res
-      .status(500)
-      .json({ message: 'An error occurred while fetching comments' });
+    res.status(500).json({
+      message: 'An error occurred while fetching comments',
+    });
   }
 };
+
 const updateCommentStatus = async (req, res) => {
   try {
     const { commentId } = req.params;
@@ -78,6 +82,7 @@ const updateCommentStatus = async (req, res) => {
   }
 };
 
+// User posting comments
 const postComment = async (req, res) => {
   try {
     const userEmail = req.userData.email;
@@ -113,19 +118,33 @@ const commentForUser = async (req, res) => {
   try {
     const { sportCenterId } = req.query;
 
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
     // Get all  doc in database
     const comments = await Comment.find({ postTo: sportCenterId })
       .populate('postBy', 'name')
-      .populate('postTo', 'sportcenter_name');
+      .populate('postTo', 'sportcenter_name')
+      .skip(skip)
+      .limit(limit);
+
+    const totalComments = await Comment.countDocuments({});
+
+    const hasNextPage = page * limit < totalComments;
 
     if (!comments || comments.length === 0) {
       return res.status(200).json({
-        message: 'Comments not found',
+        message: 'There is no comments',
+        comments: [],
       });
     }
 
     res.status(200).json({
       message: 'Success',
+      currentPage: page,
+      hasNextPage,
+      totalComments,
       comments,
     });
   } catch (err) {

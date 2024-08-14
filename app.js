@@ -1,4 +1,4 @@
-  'use strict';
+'use strict';
 
 import express from 'express';
 import morgan from 'morgan';
@@ -12,6 +12,7 @@ import book from './routes/booking.routes.js';
 import userBook from './routes/user_booking.routes.js';
 import staticBooking from './routes/booking_calculation.routes.js';
 import comments from './routes/comments.routes.js';
+import lessorModerator from './routes/lessor_moderator.routes.js';
 import cors from 'cors';
 import 'dotenv/config';
 
@@ -48,6 +49,7 @@ connectDB().then(() => {
   app.use('/api/period', staticBooking);
   app.use('/api/auth/moderator', superAdmin);
   app.use('/api/user/posts', comments);
+  app.use('/api/moderator', lessorModerator);
 
   //*  List all endpoints
   app.get('/api/endpoints', (req, res) => {

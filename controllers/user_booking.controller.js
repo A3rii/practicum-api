@@ -17,7 +17,7 @@ const getBookingForUser = async (req, res) => {
 
     if (!userBooking || userBooking === 0) {
       return res
-        .status(404)
+        .status(200)
         .json({ message: 'Bookings not found for this user', bookings: [] });
     }
 

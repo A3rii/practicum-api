@@ -17,6 +17,7 @@ const registerLessor = asyncHandler(async (req, res) => {
     sportcenter_description,
     facilities,
     operating_hours,
+    logo,
   } = req.body;
 
   try {
@@ -42,6 +43,8 @@ const registerLessor = asyncHandler(async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
+    // Time Validation
+
     // Register the lessor
     const lessor = new Lessor({
       userId,
@@ -55,15 +58,20 @@ const registerLessor = asyncHandler(async (req, res) => {
       sportcenter_description,
       facilities,
       operating_hours,
+      logo,
     });
 
     // Save the lessor to the database
     const savedLessor = await lessor.save();
 
     // Generate JWT token
-    const jwtToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-      expiresIn: '4h',
-    });
+    const jwtToken = jwt.sign(
+      { id: userId, email: savedLessor.email, role: savedLessor.role },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '4h',
+      },
+    );
 
     return res.status(201).json({
       message: 'Lessor successfully registered!',
