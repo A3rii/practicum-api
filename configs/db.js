@@ -11,7 +11,6 @@ const connectDB = async () => {
   const dbConnection = mongoose.connection;
 
   dbConnection.once('open', () => {
-    // const dbName = dbConnection.db.databaseName;
     console.log(`Database connected` + process.env.MONGODB_ATLAS);
   });
 

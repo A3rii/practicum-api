@@ -30,7 +30,8 @@ const getComments = async (req, res) => {
     // Fetch the comments based on the constructed query
     const comments = await Comment.find(query)
       .populate('postBy', 'name email phone_number')
-      .populate('postTo', 'sportcenter_name logo');
+      .populate('postTo', 'sportcenter_name logo')
+      .sort({ ratingValue: -1 });
 
     if (!comments || comments.length === 0) {
       return res.status(200).json({
@@ -90,8 +91,8 @@ const postComment = async (req, res) => {
 
     if (!user) return res.status(404).status({ message: 'User not found' });
 
-    const { postTo, comment } = req.body;
-    if (!postTo || !comment) {
+    const { postTo, comment, ratingValue } = req.body;
+    if (!postTo || !comment || !ratingValue) {
       return res.status(400).status({
         message: 'Missing required field',
       });
@@ -101,6 +102,7 @@ const postComment = async (req, res) => {
       postBy: user._id,
       postTo,
       comment,
+      ratingValue,
     });
     const saveComment = await newComment.save();
     res.status(201).json({

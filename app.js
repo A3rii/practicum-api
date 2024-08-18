@@ -13,6 +13,7 @@ import userBook from './routes/user_booking.routes.js';
 import staticBooking from './routes/booking_calculation.routes.js';
 import comments from './routes/comments.routes.js';
 import lessorModerator from './routes/lessor_moderator.routes.js';
+import rating from './routes/rating.routes.js';
 import cors from 'cors';
 import 'dotenv/config';
 
@@ -50,6 +51,7 @@ connectDB().then(() => {
   app.use('/api/auth/moderator', superAdmin);
   app.use('/api/user/posts', comments);
   app.use('/api/moderator', lessorModerator);
+  app.use('/api/rating', rating);
 
   //*  List all endpoints
   app.get('/api/endpoints', (req, res) => {
