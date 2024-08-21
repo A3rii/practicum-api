@@ -68,9 +68,11 @@ const updateLessorStatus = async (req, res) => {
       return res.status(400).json({ message: 'Invalid status' });
     }
     const lessor = await Lessor.findById(lessorId);
+
     if (!lessor) return res.status(404).json({ message: 'lessor not found' });
 
     lessor.status = status;
+    lessor.time_availability = true;
     await lessor.save();
 
     res.status(200).json({ message: 'Lessor status updated', lessor });

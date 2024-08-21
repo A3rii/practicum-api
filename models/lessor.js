@@ -68,6 +68,10 @@ const lessorSchema = new mongoose.Schema({
     type: String,
     default: '',
   },
+  time_availability: {
+    type: Boolean,
+    default: false  ,
+  },
   status: {
     type: String,
     enum: ['pending', 'approved', 'rejected'],

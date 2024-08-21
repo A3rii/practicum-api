@@ -271,10 +271,12 @@ const bookingAvailable = async (req, res) => {
 
     // Extract required fields and convert times
     const requiredBookings = filteredBookings.map((booking) => ({
+      user: booking?.user?.name || booking?.outside_user?.name,
       facility: booking.facility,
       court: booking.court,
       start: convertTime(parsedDate, booking.startTime),
       end: convertTime(parsedDate, booking.endTime),
+      status: booking.status,
     }));
 
     // Sort bookings by start time
