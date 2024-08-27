@@ -29,8 +29,6 @@ app.use(
   }),
 );
 
-console.log(process.env.FRONTEND_URL);
-
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }

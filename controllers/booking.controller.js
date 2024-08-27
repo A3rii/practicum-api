@@ -3,7 +3,7 @@ import Lessor from '../models/lessor.js';
 import moment from 'moment';
 import dayjs from 'dayjs';
 import { isSameDay, startOfDay } from 'date-fns';
-
+import { sendBookingNotification } from './../listeners/socketManager.js';
 //* Get all the bookings from the users
 const getBookingForLessor = async (req, res) => {
   try {
@@ -149,6 +149,15 @@ const createBooking = async (req, res) => {
     });
 
     const savedBooking = await newBooking.save();
+
+    // Populate the user field with the user's name and other details
+    const populatedBooking = await Booking.findById(savedBooking._id)
+      .populate('user', 'name')
+      .exec();
+
+    // Send the notification with the populated booking
+    sendBookingNotification(populatedBooking);
+
     res
       .status(201)
       .json({ message: 'Booking saved successfully', booking: savedBooking });

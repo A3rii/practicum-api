@@ -6,6 +6,7 @@ import {
   getAllLessors,
   getLessorsById,
   editLessor,
+  filterLessor,
 } from './../controllers/lessor.controller.js';
 
 import {
@@ -33,6 +34,7 @@ const router = express.Router();
 router.post('/auth/register', registerLessor);
 router.post('/auth/login', loginLessor);
 router.get('/auth/informations', getAllLessors); // for user's view
+router.get('/filter', filterLessor); // for user's view
 
 router.get('/auth/informations/:id', getLessorsById);
 

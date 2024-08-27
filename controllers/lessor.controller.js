@@ -1,8 +1,10 @@
 import asyncHandler from 'express-async-handler';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dayjs from 'dayjs';
 import Lessor from './../models/lessor.js';
 import { v4 as uuidv4 } from 'uuid';
+import { sendRegisterNotification } from './../listeners/socketManager.js';
 
 const registerLessor = asyncHandler(async (req, res) => {
   const {
@@ -63,6 +65,7 @@ const registerLessor = asyncHandler(async (req, res) => {
 
     // Save the lessor to the database
     const savedLessor = await lessor.save();
+    sendRegisterNotification(savedLessor);
 
     // Generate JWT token
     const jwtToken = jwt.sign(
@@ -154,7 +157,7 @@ const lessorProfile = asyncHandler(async (req, res) => {
 const getAllLessors = asyncHandler(async (req, res) => {
   try {
     // Fetch all lessors from the database
-    const lessors = await Lessor.find();
+    const lessors = await Lessor.find({});
     return res.status(200).json({
       success: true,
       message: 'Lessors list',
@@ -168,6 +171,109 @@ const getAllLessors = asyncHandler(async (req, res) => {
   }
 });
 
+const filterLessor = async (req, res) => {
+  try {
+    const { rating, timeAvailability, name, startTime, endTime } = req.query;
+    const ratingArray =
+      (rating &&
+        (Array.isArray(rating)
+          ? rating.map((r) => parseInt(r))
+          : rating.split(',').map((r) => parseInt(r)))) ||
+      null;
+
+    const lessorsWithRatings = await Lessor.aggregate([
+      {
+        $match: {
+          status: 'approved',
+        },
+      },
+      {
+        $lookup: {
+          from: 'comments',
+          localField: '_id',
+          foreignField: 'postTo',
+          as: 'ratings',
+        },
+      },
+      {
+        $addFields: {
+          filteredRatings: {
+            $filter: {
+              input: '$ratings',
+              as: 'rating',
+              cond: { $eq: ['$$rating.status', 'approved'] },
+            },
+          },
+        },
+      },
+      {
+        $addFields: {
+          overallRating: { $avg: '$filteredRatings.ratingValue' }, // Keep original average as float
+          flooredRating: { $floor: { $avg: '$filteredRatings.ratingValue' } }, // Add a separate field for floored rating
+          sortedRatings: {
+            $sortArray: {
+              input: '$filteredRatings',
+              sortBy: { ratingValue: -1 },
+            },
+          },
+        },
+      },
+      {
+        $match: {
+          ...(rating && {
+            flooredRating: { $in: ratingArray.map((r) => parseInt(r)) }, // Compare with multiple floored ratings
+          }),
+          ...(name && { sportcenter_name: name }),
+          ...(timeAvailability && {
+            time_availability: timeAvailability === 'true',
+          }),
+          ...(startTime &&
+            endTime && {
+              'operating_hours.open': { $lte: startTime },
+              'operating_hours.close': { $gte: endTime },
+            }),
+        },
+      },
+      {
+        $project: {
+          sportcenter_name: 1,
+          address: 1,
+          time_availability: 1,
+          operating_hours: 1,
+          logo: 1,
+          overallRating: { $round: ['$overallRating', 1] }, // Keep the overall rating as a float
+          ratings: {
+            $map: {
+              input: '$sortedRatings',
+              as: 'rating',
+              in: {
+                ratingValue: '$$rating.ratingValue',
+                status: '$$rating.status',
+              },
+            },
+          },
+        },
+      },
+      {
+        $sort: {
+          overallRating: -1, // Sort by overall rating in descending order
+        },
+      },
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      lessors: lessorsWithRatings,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+// Get Lessor by their id
 const getLessorsById = asyncHandler(async (req, res) => {
   try {
     const { id } = req.params;
@@ -226,4 +332,5 @@ export {
   getAllLessors,
   getLessorsById,
   editLessor,
+  filterLessor,
 };
