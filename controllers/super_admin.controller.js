@@ -1,7 +1,6 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import SuperAdmin from './../models/superadmin.js';
-import Lessor from '../models/lessor.js';
 import asyncHandler from 'express-async-handler';
 import { v4 as uuidv4 } from 'uuid';
 
@@ -111,7 +110,7 @@ const superAdminProfile = asyncHandler(async (req, res) => {
     return res.status(200).json({
       success: true,
       message: 'Login Successfully',
-      moderator ,
+      moderator,
     });
   } catch (error) {
     return res.status(500).json({
@@ -121,4 +120,40 @@ const superAdminProfile = asyncHandler(async (req, res) => {
   }
 });
 
-export { registerSuperAdmin, loginSuperAdmin, superAdminProfile };
+const updateModerator = async (req, res) => {
+  try {
+    const moderatorEmail = req.userData.email;
+
+    // Check if the moderator exists
+    const moderator = await SuperAdmin.findOne({ email: moderatorEmail });
+    if (!moderator) {
+      return res.status(404).json({ message: 'Moderator not found' });
+    }
+
+    const updated = await SuperAdmin.findByIdAndUpdate(moderator._id, req.body);
+
+    if (!updated) {
+      return res
+        .status(404)
+        .json({ message: 'Failed to update the moderator' });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Update Sucessfully',
+      moderator: updated,
+    });
+  } catch (err) {
+    return res.status(500).json({
+      success: false,
+      message: err.message,
+    });
+  }
+};
+
+export {
+  registerSuperAdmin,
+  loginSuperAdmin,
+  superAdminProfile,
+  updateModerator,
+};

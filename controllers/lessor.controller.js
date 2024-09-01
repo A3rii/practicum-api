@@ -223,14 +223,20 @@ const filterLessor = async (req, res) => {
           ...(rating && {
             flooredRating: { $in: ratingArray.map((r) => parseInt(r)) }, // Compare with multiple floored ratings
           }),
-          ...(name && { sportcenter_name: name }),
+          ...(name && {
+            sportcenter_name: {
+              $regex: name, // Use regex for partial matching
+              $options: 'i', // Case-insensitive search
+            },
+          }),
           ...(timeAvailability && {
-            time_availability: timeAvailability === 'true',
+            time_availability:
+              timeAvailability === 'true' ?? timeAvailability === 'false',
           }),
           ...(startTime &&
             endTime && {
-              'operating_hours.open': { $lte: startTime },
-              'operating_hours.close': { $gte: endTime },
+              'operating_hours.open': startTime,
+              'operating_hours.close': endTime,
             }),
         },
       },
@@ -240,6 +246,7 @@ const filterLessor = async (req, res) => {
           address: 1,
           time_availability: 1,
           operating_hours: 1,
+          facilities: 1,
           logo: 1,
           overallRating: { $round: ['$overallRating', 1] }, // Keep the overall rating as a float
           ratings: {

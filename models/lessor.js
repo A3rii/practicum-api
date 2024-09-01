@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import facilitySchema from './facility.js';
+import { colors } from '@mui/material';
 const lessorSchema = new mongoose.Schema({
   first_name: {
     type: String,
@@ -60,6 +61,23 @@ const lessorSchema = new mongoose.Schema({
     required: [true, 'Phone number must be provided'],
     unique: true,
   },
+  location: {
+    type: {
+      type: String,
+      default: 'Point',
+      enum: ['Point'],
+    },
+    coordinates: {
+      type: [Number],
+      required: false,
+      validate: {
+        validator: function (coords) {
+          return coords.length === 2; // Ensure it has two elements
+        },
+        message: 'Coordinates must have two elements [longitude, latitude].',
+      },
+    },
+  },
   role: {
     type: String,
     default: 'admin',
@@ -70,7 +88,7 @@ const lessorSchema = new mongoose.Schema({
   },
   time_availability: {
     type: Boolean,
-    default: false  ,
+    default: false,
   },
   status: {
     type: String,
@@ -83,6 +101,8 @@ const lessorSchema = new mongoose.Schema({
     default: Date.now,
   },
 });
+
+lessorSchema.index({ location: '2dsphere' });
 
 const Lessor = mongoose.model('Lessor', lessorSchema);
 export default Lessor;
