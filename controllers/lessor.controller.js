@@ -1,7 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
-import dayjs from 'dayjs';
 import Lessor from './../models/lessor.js';
 import { v4 as uuidv4 } from 'uuid';
 import { sendRegisterNotification } from './../listeners/socketManager.js';

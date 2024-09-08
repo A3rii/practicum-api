@@ -1,6 +1,5 @@
 import mongoose from 'mongoose';
 import facilitySchema from './facility.js';
-import { colors } from '@mui/material';
 const lessorSchema = new mongoose.Schema({
   first_name: {
     type: String,
@@ -69,6 +68,7 @@ const lessorSchema = new mongoose.Schema({
     },
     coordinates: {
       type: [Number],
+      default: [104.92655925955772, 11.565191234336485],
       required: false,
       validate: {
         validator: function (coords) {

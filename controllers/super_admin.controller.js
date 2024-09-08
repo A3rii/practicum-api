@@ -134,7 +134,7 @@ const updateModerator = async (req, res) => {
 
     if (!updated) {
       return res
-        .status(404)
+        .status(400)
         .json({ message: 'Failed to update the moderator' });
     }
 
