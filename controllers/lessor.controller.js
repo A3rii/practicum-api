@@ -169,24 +169,78 @@ const getAllLessors = asyncHandler(async (req, res) => {
     });
   }
 });
-
 const filterLessor = async (req, res) => {
   try {
-    const { rating, timeAvailability, name, startTime, endTime } = req.query;
-    const ratingArray =
-      (rating &&
-        (Array.isArray(rating)
-          ? rating.map((r) => parseInt(r))
-          : rating.split(',').map((r) => parseInt(r)))) ||
-      null;
+    const {
+      rating,
+      timeAvailability,
+      name,
+      startTime,
+      endTime,
+      latitude,
+      longitude,
+    } = req.query;
 
-    const lessorsWithRatings = await Lessor.aggregate([
+    // Ensure latitude and longitude are numbers
+    const lat = parseFloat(latitude);
+    const lng = parseFloat(longitude);
+
+    // Validate latitude and longitude
+    const isLatValid = !isNaN(lat) && isFinite(lat);
+    const isLngValid = !isNaN(lng) && isFinite(lng);
+
+    const coordinates = isLatValid && isLngValid ? [lng, lat] : null;
+
+    // Parse rating into an array if provided
+    const ratingArray =
+      rating &&
+      (Array.isArray(rating)
+        ? rating.map((r) => parseInt(r))
+        : rating.split(',').map((r) => parseInt(r)));
+
+    const aggregationPipeline = [
+      // Conditionally include $geoNear if coordinates are valid
+      ...(coordinates
+        ? [
+            {
+              $geoNear: {
+                near: {
+                  type: 'Point',
+                  coordinates: coordinates,
+                },
+                distanceField: 'distance',
+                spherical: true,
+              },
+            },
+            {
+              $limit: 1,
+            },
+          ]
+        : []),
+
       {
+        // Only select approved lessors
         $match: {
           status: 'approved',
+          ...(ratingArray && { flooredRating: { $in: ratingArray } }),
+          ...(name && {
+            sportcenter_name: {
+              $regex: name,
+              $options: 'i', // Case-insensitive search
+            },
+          }),
+          ...(timeAvailability && {
+            time_availability: timeAvailability === 'true',
+          }),
+          ...(startTime &&
+            endTime && {
+              'operating_hours.open': startTime,
+              'operating_hours.close': endTime,
+            }),
         },
       },
       {
+        // Lookup ratings from the 'comments' collection
         $lookup: {
           from: 'comments',
           localField: '_id',
@@ -195,6 +249,7 @@ const filterLessor = async (req, res) => {
         },
       },
       {
+        // Filter the ratings to only include approved ones
         $addFields: {
           filteredRatings: {
             $filter: {
@@ -206,9 +261,10 @@ const filterLessor = async (req, res) => {
         },
       },
       {
+        // Add fields for overall rating and floored rating
         $addFields: {
-          overallRating: { $avg: '$filteredRatings.ratingValue' }, // Keep original average as float
-          flooredRating: { $floor: { $avg: '$filteredRatings.ratingValue' } }, // Add a separate field for floored rating
+          overallRating: { $avg: '$filteredRatings.ratingValue' }, // Average rating
+          flooredRating: { $floor: { $avg: '$filteredRatings.ratingValue' } }, // Floored rating for filtering
           sortedRatings: {
             $sortArray: {
               input: '$filteredRatings',
@@ -218,28 +274,7 @@ const filterLessor = async (req, res) => {
         },
       },
       {
-        $match: {
-          ...(rating && {
-            flooredRating: { $in: ratingArray.map((r) => parseInt(r)) }, // Compare with multiple floored ratings
-          }),
-          ...(name && {
-            sportcenter_name: {
-              $regex: name, // Use regex for partial matching
-              $options: 'i', // Case-insensitive search
-            },
-          }),
-          ...(timeAvailability && {
-            time_availability:
-              timeAvailability === 'true' ?? timeAvailability === 'false',
-          }),
-          ...(startTime &&
-            endTime && {
-              'operating_hours.open': startTime,
-              'operating_hours.close': endTime,
-            }),
-        },
-      },
-      {
+        // Project the necessary fields to return in the result
         $project: {
           sportcenter_name: 1,
           address: 1,
@@ -247,7 +282,8 @@ const filterLessor = async (req, res) => {
           operating_hours: 1,
           facilities: 1,
           logo: 1,
-          overallRating: { $round: ['$overallRating', 1] }, // Keep the overall rating as a float
+          overallRating: { $round: ['$overallRating', 1] }, // Round rating to one decimal
+          distance: 1, // Include the distance calculated by $geoNear
           ratings: {
             $map: {
               input: '$sortedRatings',
@@ -260,16 +296,13 @@ const filterLessor = async (req, res) => {
           },
         },
       },
-      {
-        $sort: {
-          overallRating: -1, // Sort by overall rating in descending order
-        },
-      },
-    ]);
+    ];
+
+    const lessorsWithFilters = await Lessor.aggregate(aggregationPipeline);
 
     return res.status(200).json({
       success: true,
-      lessors: lessorsWithRatings,
+      lessors: lessorsWithFilters,
     });
   } catch (err) {
     return res.status(500).json({

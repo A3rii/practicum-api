@@ -56,4 +56,45 @@ const allSportCenterLocations = async (req, res) => {
   }
 };
 
-export { setLocationLessor, allSportCenterLocations };
+const findNearestLocation = async (req, res) => {
+  try {
+    // Ensure latitude and longitude are numbers
+    const latitude = parseFloat(req.query.latitude);
+    const longitude = parseFloat(req.query.longitude);
+
+    // Validate latitude and longitude
+    if (isNaN(latitude) || isNaN(longitude)) {
+      return res.status(400).json({ message: 'Invalid latitude or longitude' });
+    }
+
+    const coordinates = [longitude, latitude];
+
+    // Perform the query using $near
+    const findLocation = await Lessor.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: 'Point',
+            coordinates: coordinates,
+          },
+        },
+      },
+    })
+      .select('sportcenter_name address location')
+      .limit(1); // Find the nearest point next to user
+
+    if (!findLocation)
+      return res.status(400).json({
+        message: 'Location can not be found ',
+      });
+
+    res.status(200).json({
+      message: 'Success',
+      near: findLocation,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
+};
+
+export { setLocationLessor, allSportCenterLocations, findNearestLocation };

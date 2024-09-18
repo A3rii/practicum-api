@@ -139,6 +139,7 @@ const lessorForSuperAdmin = async (req, res) => {
           sportcenter_name: 1,
           phone_number: 1,
           logo: 1,
+          facilities: 1,
           created_at: 1,
           overallRating: { $round: ['$overallRating', 1] }, // Round the overall rating to 1 decimal place
           ratings: {
