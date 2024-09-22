@@ -218,25 +218,19 @@ const filterLessor = async (req, res) => {
           ]
         : []),
 
+      // Match stage to filter approved lessors and other criteria
       {
-        // Only select approved lessors
         $match: {
           status: 'approved',
-          ...(ratingArray && { flooredRating: { $in: ratingArray } }),
           ...(name && {
             sportcenter_name: {
               $regex: name,
-              $options: 'i', // Case-insensitive search
+              $options: 'i',
             },
           }),
-          ...(timeAvailability && {
+          ...(timeAvailability !== undefined && {
             time_availability: timeAvailability === 'true',
           }),
-          ...(startTime &&
-            endTime && {
-              'operating_hours.open': startTime,
-              'operating_hours.close': endTime,
-            }),
         },
       },
       {
@@ -263,16 +257,31 @@ const filterLessor = async (req, res) => {
       {
         // Add fields for overall rating and floored rating
         $addFields: {
-          overallRating: { $avg: '$filteredRatings.ratingValue' }, // Average rating
-          flooredRating: { $floor: { $avg: '$filteredRatings.ratingValue' } }, // Floored rating for filtering
-          sortedRatings: {
-            $sortArray: {
-              input: '$filteredRatings',
-              sortBy: { ratingValue: -1 },
-            },
-          },
+          overallRating: { $avg: '$filteredRatings.ratingValue' },
+          flooredRating: { $floor: { $avg: '$filteredRatings.ratingValue' } },
         },
       },
+      // Apply operating hours filtering if startTime and endTime are provided
+      ...(startTime && endTime
+        ? [
+            {
+              $match: {
+                'operating_hours.open': { $lte: startTime },
+                'operating_hours.close': { $gte: endTime },
+              },
+            },
+          ]
+        : []),
+      // Match based on flooredRating if ratingArray is provided
+      ...(ratingArray
+        ? [
+            {
+              $match: {
+                flooredRating: { $in: ratingArray },
+              },
+            },
+          ]
+        : []),
       {
         // Project the necessary fields to return in the result
         $project: {
@@ -283,10 +292,10 @@ const filterLessor = async (req, res) => {
           facilities: 1,
           logo: 1,
           overallRating: { $round: ['$overallRating', 1] }, // Round rating to one decimal
-          distance: 1, // Include the distance calculated by $geoNear
+          distance: 1,
           ratings: {
             $map: {
-              input: '$sortedRatings',
+              input: '$filteredRatings',
               as: 'rating',
               in: {
                 ratingValue: '$$rating.ratingValue',
