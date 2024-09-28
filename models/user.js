@@ -21,6 +21,12 @@ const userSchema = new mongoose.Schema({
     required: [true, 'Phone number must be provided'],
     unique: true,
   },
+  googleId: {
+    type: String,
+    require: false,
+    unique: true,
+    default: '',
+  },
   role: {
     type: String,
     enum: ['user', 'admin', 'moderator'],

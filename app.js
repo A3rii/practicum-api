@@ -2,6 +2,7 @@
 
 import express from 'express';
 import morgan from 'morgan';
+import crypto from 'crypto';
 import connectDB from './configs/db.js';
 import bodyParser from 'body-parser';
 import expressListEndpoints from 'express-list-endpoints';
@@ -16,9 +17,28 @@ import lessorModerator from './routes/lessor_moderator.routes.js';
 import location from './routes/location.routes.js';
 import rating from './routes/rating.routes.js';
 import cors from 'cors';
+import helmet from 'helmet';
+import passport from 'passport';
+import session from 'express-session';
+
 import 'dotenv/config';
 
 const app = express();
+
+// Initialize session middleware
+app.use(
+  session({
+    secret: process.env.SESSION_SECRET || 'your_default_secret_key', // Use a secure secret
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+  }),
+);
+// Initialize Passport
+app.use(passport.initialize());
+app.use(passport.session());
+// use helemt
+app.use(helmet());
 
 // Middleware to parse JSON
 app.use(bodyParser.urlencoded({ extended: true }));

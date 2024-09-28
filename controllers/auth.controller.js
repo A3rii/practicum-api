@@ -2,6 +2,8 @@ import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
 import User from './../models/user.js';
 import asyncHandler from 'express-async-handler';
+import session from 'express-session';
+
 import { v4 as uuidv4 } from 'uuid';
 
 // Register user

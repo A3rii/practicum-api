@@ -1,4 +1,9 @@
 import express from 'express';
+import passport from 'passport';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import SocialUser from './../models/social_user.js';
+import 'dotenv/config';
+
 const router = express.Router();
 
 //Imporing the authvalidation functions for login and register
@@ -20,5 +25,80 @@ router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.get('/profile', verifyToken, userProfile);
 router.get('/users', users);
+
+passport.use(
+  new GoogleStrategy(
+    {
+      clientID: process.env.GOOGLE_CLIENT_ID,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+      callbackURL: process.env.GOOGLE_REDIRECT_URI,
+    },
+    async (accessToken, refreshToken, profile, done) => {
+      try {
+        // Check if user already exists in the database
+        let user = await SocialUser.findOne({ provider_id: profile.id });
+
+        if (!user) {
+          // If the user doesn't exist, create a new user
+          user = new SocialUser({
+            provider_id: profile?.id,
+            email: profile?.emails[0].value,
+            name: profile?.displayName,
+            avatar: profile?._json.picture,
+            provider: profile?.provider,
+          });
+          await user.save();
+        }
+
+        /* Access token */
+        // const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        //   expiresIn: '2h',
+        // });
+
+        done(null, { user, accessToken });
+      } catch (error) {
+        done(error, false);
+      }
+    },
+  ),
+);
+
+// Serialize user
+passport.serializeUser((user, done) => {
+  done(null, user);
+});
+
+// Deserialize user
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await SocialUser.findById(id);
+    done(null, user);
+  } catch (error) {
+    done(error, false);
+  }
+});
+
+// Route to initiate Google OAuth flow
+router.get(
+  '/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] }),
+);
+
+// Route to handle Google OAuth callback
+router.get(
+  '/google/callback',
+  passport.authenticate('google', { failureRedirect: '/login' }),
+  (req, res) => {
+    // Successfully authenticated, redirect to the React frontend
+    res.redirect(process.env.FRONTEND_URL);
+  },
+);
+
+// Logout route
+router.get('/logout', (req, res) => {
+  req.logout(() => {
+    res.redirect(process.env.FRONTEND_URL);
+  });
+});
 
 export default router;
