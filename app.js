@@ -2,7 +2,6 @@
 
 import express from 'express';
 import morgan from 'morgan';
-import crypto from 'crypto';
 import connectDB from './configs/db.js';
 import bodyParser from 'body-parser';
 import expressListEndpoints from 'express-list-endpoints';
@@ -20,18 +19,24 @@ import cors from 'cors';
 import helmet from 'helmet';
 import passport from 'passport';
 import session from 'express-session';
-
 import 'dotenv/config';
 
 const app = express();
 
 // Initialize session middleware
+
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  }),
+);
 app.use(
   session({
-    secret: process.env.SESSION_SECRET || 'your_default_secret_key', // Use a secure secret
+    secret: process.env.JWT_SECRET,
     resave: false,
     saveUninitialized: true,
-    cookie: { maxAge: 30 * 24 * 60 * 60 * 1000 }, // 30 days
+    cookie: { maxAge: 24 * 60 * 60 * 1000 },
   }),
 );
 // Initialize Passport
@@ -43,12 +48,6 @@ app.use(helmet());
 // Middleware to parse JSON
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
-app.use(
-  cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
-  }),
-);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));

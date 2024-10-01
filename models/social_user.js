@@ -5,6 +5,11 @@ const socialUserSchema = new mongoose.Schema({
     type: String,
     unique: true,
   },
+  email: {
+    type: String,
+    required: [true, 'email must be provided'],
+    unique: true,
+  },
   name: {
     type: String,
     required: [true, 'name must be provided'],
