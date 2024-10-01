@@ -1,6 +1,5 @@
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs';
-import SocialUser from './../models/social_user.js';
 import User from './../models/user.js';
 import asyncHandler from 'express-async-handler';
 import { v4 as uuidv4 } from 'uuid';
@@ -96,53 +95,19 @@ const login = asyncHandler(async (req, res) => {
 const userProfile = asyncHandler(async (req, res) => {
   try {
     const userEmail = req.userData.email;
-    const providerId = req.userData.provider_id;
-
-    // Fetch default and social users based on the email and provider_id
-    const defaultUser = await User.findOne({ email: userEmail }).select(
-      '-password',
-    );
-
-    // find a social user
-    const socialUser = await SocialUser.findOne({
-      provider_id: providerId,
-    });
-
-    // If neither the defaultUser nor the socialUser exist, return 404
-    if (!defaultUser && !socialUser) {
+    const user = await User.findOne({ email: userEmail }).select('-password'); //get password out
+    if (!user) {
       return res.status(404).json({
         success: false,
         message: 'User not found',
       });
     }
 
-    // Handle cases where both users exist and have the same email
-    if (defaultUser && socialUser) {
-      return res.status(200).json({
-        success: true,
-        message: 'Both users exist with the same email',
-        defaultUser,
-        socialUser,
-      });
-    }
-
-    // Handle case where only the default user exists
-    if (defaultUser && !socialUser) {
-      return res.status(200).json({
-        success: true,
-        message: 'Default user exists but no social user found',
-        user: defaultUser,
-      });
-    }
-
-    // Handle case where only the social user exists
-    if (!defaultUser && socialUser) {
-      return res.status(200).json({
-        success: true,
-        message: 'Social user exists but no default user found',
-        user: socialUser,
-      });
-    }
+    return res.status(200).json({
+      success: true,
+      message: 'User Found',
+      user,
+    });
   } catch (error) {
     return res.status(500).json({
       success: false,

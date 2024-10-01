@@ -13,13 +13,38 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'password must be provided'],
+    required: [
+      function () {
+        return !this.provider_id;
+      },
+    ],
     unique: true,
   },
   phone_number: {
     type: String,
-    required: [true, 'Phone number must be provided'],
+    required: [
+      function () {
+        return !this.provider_id;
+      },
+      'Phone number must be provided for default users',
+    ],
     unique: true,
+  },
+  provider_id: {
+    type: String,
+    required: false,
+    default: '',
+    unique: true,
+  },
+  avatar: {
+    type: String,
+    required: false,
+    default: '',
+  },
+  provider: {
+    type: String,
+    default: '',
+    required: false,
   },
   role: {
     type: String,

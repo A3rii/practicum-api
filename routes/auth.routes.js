@@ -1,10 +1,9 @@
 import express from 'express';
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import SocialUser from './../models/social_user.js';
-import 'dotenv/config';
-import mongoose from 'mongoose';
+import User from './../models/user.js';
 import jwt from 'jsonwebtoken';
+import 'dotenv/config';
 
 const router = express.Router();
 
@@ -39,11 +38,11 @@ passport.use(
     async (accessToken, refreshToken, profile, done) => {
       try {
         // Check if user already exists in the database
-        let user = await SocialUser.findOne({ provider_id: profile.id });
+        let user = await User.findOne({ provider_id: profile.id });
 
         if (!user) {
           // If the user doesn't exist, create a new user
-          user = new SocialUser({
+          user = new User({
             provider_id: profile?.id,
             email: profile?.emails[0]?.value,
             name: profile?.displayName,
@@ -69,7 +68,7 @@ passport.serializeUser((user, done) => {
 // Deserialize user
 passport.deserializeUser(async (id, done) => {
   try {
-    const user = await SocialUser.findById(id);
+    const user = await User.findById(id);
     done(null, user);
   } catch (error) {
     done(error, false);
@@ -91,7 +90,7 @@ router.get(
       const googleUser = req.user;
 
       // Check if the user exists in the database
-      const social_user = await SocialUser.findOne({
+      const social_user = await User.findOne({
         provider_id: googleUser.user.provider_id,
       });
 
