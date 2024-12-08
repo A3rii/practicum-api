@@ -15,6 +15,7 @@ const totalBookingsByMonth = async (req, res) => {
     const bookings = await Booking.aggregate([
       // Match the bookings for the specific lessor
       { $match: { lessor: lessor._id } },
+
       // Add fields for year and month extracted from the createdAt date
       {
         $addFields: {

@@ -12,11 +12,12 @@ import {
   registerValidation,
   loginValidation,
 } from './../middleware/authValidation.middleware.js';
-import {
+import {  
   login,
   register,
   userProfile,
   users,
+  editUser,
 } from './../controllers/auth.controller.js';
 
 //Importing the JWT verifyer from auth middleware
@@ -25,6 +26,8 @@ import verifyToken from './../middleware/auth.middleware.js';
 router.post('/register', registerValidation, register);
 router.post('/login', loginValidation, login);
 router.get('/profile', verifyToken, userProfile);
+router.put('/edit-user', verifyToken, editUser);
+
 router.get('/users', users);
 
 // Social Login ( Google )

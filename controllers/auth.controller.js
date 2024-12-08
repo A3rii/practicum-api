@@ -134,4 +134,32 @@ const users = asyncHandler(async (req, res) => {
   }
 });
 
-export { register, login, userProfile, users };
+// edit user
+
+const editUser = asyncHandler(async (req, res) => {
+  try {
+    const userEmail = req.userData.email;
+    const user = await User.findOne({ email: userEmail });
+
+    if (!user) return res.status(404).json({ message: 'User not found' });
+
+    const updateUser = await User.findByIdAndUpdate(user._id, {
+      phone_number: req.body.phone_number,
+    });
+
+    if (!updateUser)
+      return res.status(422).json({ message: 'error updating phone number' });
+
+    res.status(200).json({
+      message: 'User successfully updated',
+      updateUser,
+    });
+  } catch (error) {
+    return res.status(401).json({
+      success: false,
+      message: error.message,
+    });
+  }
+});
+
+export { register, login, userProfile, users, editUser };

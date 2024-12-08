@@ -8,6 +8,7 @@ import {
   updateModerator,
 } from './../controllers/super_admin.controller.js';
 
+import { resetPassword } from './../controllers/resest_password.controller.js';
 import {
   registerValidation,
   loginValidation,
@@ -17,7 +18,10 @@ import verifyToken from './../middleware/auth.middleware.js';
 
 router.post('/register', registerValidation, registerSuperAdmin);
 router.post('/login', loginValidation, loginSuperAdmin);
-router.put('/update', verifyToken, updateModerator);
-router.get('/profile', verifyToken, superAdminProfile);
+
+router.use(verifyToken);
+router.put('/update', updateModerator);
+router.get('/profile', superAdminProfile);
+router.put('/reset-password/lessor/:lessorId', resetPassword);
 
 export default router;
