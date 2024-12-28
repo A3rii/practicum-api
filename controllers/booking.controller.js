@@ -76,8 +76,6 @@ const bookingsPagination = async (req, res) => {
       .skip(skip)
       .limit(limit);
 
-    console.log(bookings);
-
     // If the bookings are not found return 404
     if (!bookings || bookings.length === 0) {
       return res
@@ -162,7 +160,7 @@ const createBooking = async (req, res) => {
       .status(201)
       .json({ message: 'Booking saved successfully', booking: savedBooking });
   } catch (err) {
-    console.error('Error creating booking:');
+    console.error('Error creating booking');
     res.status(500).json({ message: err.message });
   }
 };

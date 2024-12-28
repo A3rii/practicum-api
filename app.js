@@ -15,6 +15,7 @@ import comments from './routes/comments.routes.js';
 import lessorModerator from './routes/lessor_moderator.routes.js';
 import location from './routes/location.routes.js';
 import rating from './routes/rating.routes.js';
+import payment from './routes/payment.routes.js';
 import cors from 'cors';
 import helmet from 'helmet';
 import passport from 'passport';
@@ -71,8 +72,9 @@ connectDB().then(() => {
   app.use('/api/moderator', lessorModerator);
   app.use('/api/rating', rating);
   app.use('/api/location', location);
+  app.use('/api/payment', payment);
 
-  //*  List all endpoints
+  // List all endpoints
   app.get('/api/endpoints', (req, res) => {
     const endpoints = expressListEndpoints(app);
     res.status(200).json({

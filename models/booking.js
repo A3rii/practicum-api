@@ -10,7 +10,6 @@ const bookingSchema = new mongoose.Schema(
       required: [true, 'User id reference must be provided'],
     },
 
-    // In case of creating a booking by lessor themselves
     outside_user: {
       name: {
         type: String,
