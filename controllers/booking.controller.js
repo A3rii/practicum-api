@@ -20,12 +20,6 @@ const getBookingForLessor = async (req, res) => {
       .populate('lessor', 'first_name last_name')
       .populate('user', 'name email phone_number');
 
-    if (!bookings || bookings.length === 0) {
-      return res
-        .status(200)
-        .json({ message: 'Bookings not found for this lessor' });
-    }
-
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
     let updatedBookings = [];

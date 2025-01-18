@@ -36,9 +36,22 @@ const register = asyncHandler(async (req, res) => {
 
     // Save the user to the database
     const savedUser = await user.save();
+
+    // Generate JWT token after the user is saved
+    const jwtToken = jwt.sign(
+      {
+        email: savedUser.email, // Use saved user's email
+        role: savedUser.role, // Use saved user's role
+      },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: '4h',
+      },
+    );
     return res.status(201).json({
       message: 'User successfully Registered!',
       success: true,
+      accessToken: jwtToken,
       user: savedUser,
     });
   } catch (error) {

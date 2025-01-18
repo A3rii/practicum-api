@@ -25,13 +25,18 @@ import 'dotenv/config';
 const app = express();
 
 // Initialize session middleware
-
+// CORS block
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL,
-    credentials: true,
+    origin: [
+      process.env.FRONTEND_URL,
+      process.env.MD5,
+      process.env.RENEW_TOKEN,
+    ], // Allow the frontend URL
+    credentials: true, // Allow cookies and credentials
   }),
 );
+
 app.use(
   session({
     secret: process.env.JWT_SECRET,
@@ -43,6 +48,7 @@ app.use(
 // Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
+
 // use helemt
 app.use(helmet());
 
@@ -56,7 +62,7 @@ if (process.env.NODE_ENV === 'development') {
 
 app.get('/', (req, res) => {
   res.status(200).json({
-    message: 'server is running',
+    message: `server is running on ${process.env.FRONTEND_URL}`,
   });
 });
 
