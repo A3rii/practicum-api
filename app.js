@@ -25,7 +25,7 @@ import 'dotenv/config';
 const app = express();
 
 // Initialize session middleware
-// CORS block
+// CORS block problems with KHQR
 app.use(
   cors({
     origin: [

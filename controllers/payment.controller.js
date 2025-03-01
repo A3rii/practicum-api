@@ -41,11 +41,19 @@ const getUserPayments = async (req, res) => {
       return res.status(404).json({ message: 'Lessor not found' });
     }
 
+    // Extract page and limit from query parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 7;
+
+    const skip = (page - 1) * limit;
+
     const payments = await Payment.find({ lessor: lessor._id })
       .populate('lessor', 'first_name last_name')
       .populate('user', 'name email phone_number')
       .populate('booking', 'facility court date startTime endTime')
-      .sort({ createdAt: -1 });
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit);
 
     if (!payments || payments.length === 0) {
       return res
@@ -53,13 +61,22 @@ const getUserPayments = async (req, res) => {
         .json({ message: 'Payment not found for this lessor' });
     }
 
-    res.status(200).json({ message: 'success', payments });
+    const totalPayment = await Payment.countDocuments({});
+
+    res.status(200).json({
+      message: 'success',
+      totalPayment: totalPayment,
+      totalPages: Math.ceil(totalPayment / limit),
+      currentPage: page,
+      payments,
+    });
   } catch (err) {
     console.error('Error getting payment');
     throw new Error(err);
   }
 };
 
+// Total Income for each lessor sum with khr and usd
 const totalIcomeForLessor = async (req, res) => {
   try {
     const userEmail = req.userData.email;

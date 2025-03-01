@@ -99,8 +99,6 @@ const createCourt = asyncHandler(async (req, res) => {
     // Validate name and description are provided
     const { name, description, image } = req.body;
 
-    console.log(name);
-    console.log(description);
     if (!name || !description) {
       return res.status(400).json({
         message: 'name and description must be provided',

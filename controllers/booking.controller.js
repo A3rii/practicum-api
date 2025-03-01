@@ -4,6 +4,7 @@ import moment from 'moment';
 import dayjs from 'dayjs';
 import { isSameDay, startOfDay } from 'date-fns';
 import { sendBookingNotification } from './../listeners/socketManager.js';
+
 //* Get all the bookings from the users
 const getBookingForLessor = async (req, res) => {
   try {
@@ -14,11 +15,20 @@ const getBookingForLessor = async (req, res) => {
       return res.status(404).json({ message: 'Lessor not found' });
     }
 
+    // Extract page and limit from query parameters
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+
+    // Calculate the number of documents to skip
+    const skip = (page - 1) * limit;
+
     // Get all the bookings information that matches
     const bookings = await Booking.find({ lessor: lessor._id })
       .sort({ date: -1 })
       .populate('lessor', 'first_name last_name')
-      .populate('user', 'name email phone_number');
+      .populate('user', 'name email phone_number')
+      .skip(skip)
+      .limit(limit);
 
     const currentDate = new Date();
     currentDate.setHours(0, 0, 0, 0);
@@ -261,7 +271,7 @@ const bookingAvailable = async (req, res) => {
      *
      * @param {*} date
      * @param {*} time
-     * @returns  ISODate  (2024-07-19T17:00:00.000Z )
+     * @returns  ISODate  (2024-07-19T17:00:00.000Z)
      */
     const convertTime = (date, time) => {
       return dayjs(

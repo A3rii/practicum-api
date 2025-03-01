@@ -44,8 +44,6 @@ const registerLessor = asyncHandler(async (req, res) => {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Time Validation
-
     // Register the lessor
     const lessor = new Lessor({
       userId,
